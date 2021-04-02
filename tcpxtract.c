@@ -83,6 +83,37 @@ struct sniff_ethernet {
         u_short ether_type;                     /* IP? ARP? RARP? etc */
 };
 
+/* Radiotap header*/
+struct radiotap{
+    u_int8_t        it_version;     /* set to 0 */
+    u_int8_t        it_pad;
+    u_int16_t       it_len;         /* entire length */
+    u_int32_t       it_present;     /* fields present */
+};
+
+/* 802.11 header */
+struct ieee80211{
+    u_int16_t       fc;                 
+    u_int16_t       duration;
+    u_int8_t         addr1[6];         
+    u_int8_t         addr2[6];
+    u_int8_t         addr3[6];
+    u_int16_t       seqCtrl; 
+    u_int8_t         addr4[6];
+    // may not: QOS, HT
+    //u_int16_t       qos;
+    //u_int32_t       ht;
+};
+
+/* LLC */
+struct llc{
+    u_int8_t  dsap;
+    u_int8_t  ssap;
+    u_int8_t  ctrl;
+    u_int8_t  oui[3];
+    u_int16_t  type;
+};
+
 /* IP header */
 struct sniff_ip {
         #if BYTE_ORDER == LITTLE_ENDIAN
