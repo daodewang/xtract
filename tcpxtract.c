@@ -84,29 +84,36 @@ struct sniff_ethernet {
 };
 
 /* Radiotap header*/
-struct radiotap{
+struct s_radiotap{
     u_int8_t        it_version;     /* set to 0 */
     u_int8_t        it_pad;
     u_int16_t       it_len;         /* entire length */
     u_int32_t       it_present;     /* fields present */
 };
 
+#define DATA_FRAME           0x02
+#define FLAG_ORDER            0x80
+#define FCF_FRAME_TYPE(x)    (((x) & 0xC) >> 2)
+#define FCF_FRAME_SUBTYPE(x) (((x) & 0xF0) >> 4)
+#define DATA_FRAME_IS_QOS(x)     ((x) & 0x08)
+#define HAS_HT_CONTROL(x)      (((x) >>8 )& FLAG_ORDER)
+
 /* 802.11 header */
-struct ieee80211{
+struct s_ieee80211{
     u_int16_t       fc;                 
     u_int16_t       duration;
-    u_int8_t         addr1[6];         
-    u_int8_t         addr2[6];
-    u_int8_t         addr3[6];
+    u_char         dst_addr[6];         
+    u_char         src_addr[6];
+    u_char         addr3[6];
     u_int16_t       seqCtrl; 
-    u_int8_t         addr4[6];
+    u_char         addr4[6];
     // may not: QOS, HT
     //u_int16_t       qos;
     //u_int32_t       ht;
 };
 
 /* LLC */
-struct llc{
+struct s_llc{
     u_int8_t  dsap;
     u_int8_t  ssap;
     u_int8_t  ctrl;
@@ -178,15 +185,19 @@ struct sniff_udp {
 static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
     /* Define pointers for packet's attributes */
-    struct sniff_ethernet *ethernet;  /* The ethernet header */
+    //struct sniff_ethernet *ethernet;  /* The ethernet header */
+    struct s_radiotap *radio;
+    struct s_ieee80211 *i802;
+    struct s_llc *llc;
     struct sniff_ip *ip;              /* The IP header */
     struct sniff_tcp *tcp;            /* The TCP header */
     struct sniff_udp *udp;            /* The UDP header */
     uint8_t *payload;           /* The data */
+    uint16_t fc;
     
     /* And define the size of the structures we're using */
-    int size_ethernet = sizeof(struct sniff_ethernet);
-    int size_ip;
+    //int size_ethernet = sizeof(struct sniff_ethernet);
+    int size_ip, len_radio, len_80211, len_llc, len_wifi;
     int size_tcp;
     int size_udp = 8;  /* just trust me */
     
@@ -199,23 +210,42 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     
     /* -- Define our packet's attributes -- */
     /* There is obviously a lot of unused potential here since we only want to dump */
-    ethernet = (struct sniff_ethernet*)(packet);
-    ip = (struct sniff_ip*)(packet + size_ethernet);
+    //ethernet = (struct sniff_ethernet*)(packet);
+    radio = (struct s_radiotap*)(packet);
+    len_radio = radio->it_len;
+    len_80211 = sizeof(struct s_ieee80211)
+    len_llc = sizeof(struct s_llc);
+    i802 = (struct s_ieee80211*)(packet + len_radio);
+    fc = i802->fc;
+    if (FCF_FRAME_TYPE(fc) != DATA_FRAME)   /* only care DATA  */
+        return;
+    
+    if(DATA_FRAME_IS_QOS(CF_FRAME_SUBTYPE(fc)))
+        len_80211 += 2;
+        if(HAS_HT_CONTROL(fc))
+            len_80211 += 4;
+    
+    llc = (struct s_llc*)(packet + len_radio + len_80211);
+    if(llc->type != 0x08)       /*  only care IP */
+        return:
+
+    len_wifi = len_radio + len_80211 + len_llc;
+    ip = (struct sniff_ip*)(packet + len_wifi);
     size_ip = ip->ip_hl << 2;
-    tcp = (struct sniff_tcp*)(packet + size_ethernet + size_ip);
+    tcp = (struct sniff_tcp*)(packet + len_wifi + size_ip);
     size_tcp = tcp->th_off << 2;
-    udp = (struct sniff_udp*)(packet + size_ethernet + size_ip);
+    udp = (struct sniff_udp*)(packet + len_wifi + size_ip);
         
     /* if it ain't IP, bail, hard */
-    if (ethernet->ether_type != 0x08) /* I think 0x08 is IP, at least it looks that way */
-        return;
+    //if (ethernet->ether_type != 0x08) /* I think 0x08 is IP, at least it looks that way */
+    //    return;
     
     switch (ip->ip_p) {
     case TCP_PROTO:
-        header_size = size_ethernet + size_ip + size_tcp;
+        header_size = len_wifi + size_ip + size_tcp;
         break;
     case UDP_PROTO:
-        header_size = size_ethernet + size_ip + size_udp;
+        header_size = size_wifi + size_ip + size_udp;
         break;
     default:
         return;          /* at this point, I only care about tcp and udp */
