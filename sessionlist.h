@@ -40,8 +40,8 @@
 typedef struct {
     uint32_t ip_src;
     uint32_t ip_dst;
-    uint8_t eth_src[ETHER_ADDR_LEN];
-    uint8_t eth_dst[ETHER_ADDR_LEN];
+    //uint8_t eth_src[ETHER_ADDR_LEN];
+    //uint8_t eth_dst[ETHER_ADDR_LEN];
     uint16_t port_src;
     uint16_t port_dst;
 } connection_t;

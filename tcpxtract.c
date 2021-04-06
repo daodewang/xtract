@@ -93,10 +93,14 @@ struct s_radiotap{
 
 #define DATA_FRAME           0x02
 #define FLAG_ORDER            0x80
+#define FLAG_TO_DS            0x01
+#define FLAG_FROM_DS          0x02
 #define FCF_FRAME_TYPE(x)    (((x) & 0xC) >> 2)
-#define FCF_FRAME_SUBTYPE(x) (((x) & 0xF0) >> 4)
+#define FCF_FRAME_SUBTYPE(x)    (((x) & 0xF0) >> 4)
 #define DATA_FRAME_IS_QOS(x)     ((x) & 0x08)
 #define HAS_HT_CONTROL(x)      (((x) >>8 )& FLAG_ORDER)
+#define IS_TO_DS(x)            (((x) >>8)& FLAG_TO_DS)
+#define IS_FROM_DS(x)          (((x) >>8)& FLAG_FROM_DS)
 
 /* 802.11 header */
 struct s_ieee80211{
@@ -213,21 +217,24 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     //ethernet = (struct sniff_ethernet*)(packet);
     radio = (struct s_radiotap*)(packet);
     len_radio = radio->it_len;
-    len_80211 = sizeof(struct s_ieee80211)
+    len_80211 = sizeof(struct s_ieee80211);
     len_llc = sizeof(struct s_llc);
     i802 = (struct s_ieee80211*)(packet + len_radio);
     fc = i802->fc;
     if (FCF_FRAME_TYPE(fc) != DATA_FRAME)   /* only care DATA  */
         return;
     
-    if(DATA_FRAME_IS_QOS(CF_FRAME_SUBTYPE(fc)))
+    //printf('here');
+    //printf('solved ld% packet', num_packets);    //debug
+
+    if(DATA_FRAME_IS_QOS(FCF_FRAME_SUBTYPE(fc)))
         len_80211 += 2;
         if(HAS_HT_CONTROL(fc))
             len_80211 += 4;
     
     llc = (struct s_llc*)(packet + len_radio + len_80211);
     if(llc->type != 0x08)       /*  only care IP */
-        return:
+        return;
 
     len_wifi = len_radio + len_80211 + len_llc;
     ip = (struct sniff_ip*)(packet + len_wifi);
@@ -245,7 +252,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
         header_size = len_wifi + size_ip + size_tcp;
         break;
     case UDP_PROTO:
-        header_size = size_wifi + size_ip + size_udp;
+        header_size = len_wifi + size_ip + size_udp;
         break;
     default:
         return;          /* at this point, I only care about tcp and udp */
@@ -258,8 +265,8 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     
     conn.ip_src = ip->ip_src.s_addr;
     conn.ip_dst = ip->ip_dst.s_addr;
-    memcpy(conn.eth_src, ethernet->ether_shost, ETHER_ADDR_LEN);
-    memcpy(conn.eth_dst, ethernet->ether_dhost, ETHER_ADDR_LEN);
+    //memcpy(conn.eth_src, ethernet->ether_shost, ETHER_ADDR_LEN);
+    //memcpy(conn.eth_dst, ethernet->ether_dhost, ETHER_ADDR_LEN);
     conn.port_src = tcp->th_sport;
     conn.port_dst = tcp->th_dport;
     
@@ -423,6 +430,7 @@ int main(int argc, char *argv[])
 
     for (;;) {
         int ncapd = pcap_dispatch(handle, 100, got_packet, NULL);
+        //printf('100'); //debug
         sweep_sessions(&sessions);
         if (ncapd < 0)
             error(pcap_geterr(handle));
