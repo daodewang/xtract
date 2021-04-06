@@ -225,7 +225,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
         return;
     
     //printf('here');
-    //printf('solved ld% packet', num_packets);    //debug
+    printf("solved %ld packet", num_packets);    //debug
 
     if(DATA_FRAME_IS_QOS(FCF_FRAME_SUBTYPE(fc)))
         len_80211 += 2;
@@ -430,7 +430,9 @@ int main(int argc, char *argv[])
 
     for (;;) {
         int ncapd = pcap_dispatch(handle, 100, got_packet, NULL);
-        //printf('100'); //debug
+        printf("100\n"); //debug
+        //printf('solved ld% packet', num_packets);    //debug
+
         sweep_sessions(&sessions);
         if (ncapd < 0)
             error(pcap_geterr(handle));

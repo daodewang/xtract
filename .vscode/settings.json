@@ -4,6 +4,8 @@
         "unordered_map": "cpp",
         "istream": "cpp",
         "functional": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "new": "c",
+        "stdexcept": "c"
     }
 }
