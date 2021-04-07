@@ -115,9 +115,6 @@ struct s_ieee80211
     u_char addr3[6];
     u_int16_t seqCtrl;
     u_char addr4[6];
-    // may not: QOS, HT
-    //u_int16_t       qos;
-    //u_int32_t       ht;
 };
 
 /* LLC */
