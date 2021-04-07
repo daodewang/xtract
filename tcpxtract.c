@@ -231,7 +231,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
         return;
 
     
-    printf("solved %ld packet", num_packets); //debug
+    printf("solved %ld packet\n", num_packets); //debug
 
     if (DATA_FRAME_IS_QOS(FCF_FRAME_SUBTYPE(fc))){
         len_80211 += 2;
