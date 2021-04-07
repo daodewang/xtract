@@ -114,7 +114,7 @@ struct s_ieee80211
     u_char src_addr[6];
     u_char addr3[6];
     u_int16_t seqCtrl;
-    u_char addr4[6];
+    //u_char addr4[6];
 };
 
 /* LLC */
@@ -216,6 +216,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     connection_t conn;
     srch_results_t *results;
 
+    //printf("got packet ");
     num_packets++;
 
     /* -- Define our packet's attributes -- */
@@ -230,19 +231,21 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     if (FCF_FRAME_TYPE(fc) != DATA_FRAME) /* only care DATA  */
         return;
 
-    
     printf("solved %ld packet\n", num_packets); //debug
 
-    if (DATA_FRAME_IS_QOS(FCF_FRAME_SUBTYPE(fc))){
+    if (DATA_FRAME_IS_QOS(FCF_FRAME_SUBTYPE(fc)))
+    {
         len_80211 += 2;
         if (HAS_HT_CONTROL(fc))
             len_80211 += 4;
     }
 
     llc = (struct s_llc *)(packet + len_radio + len_80211);
+    //printf("LLC ");
     if (llc->type != 0x08) /*  only care IP */
         return;
 
+    printf("IP ");
     len_wifi = len_radio + len_80211 + len_llc;
     ip = (struct sniff_ip *)(packet + len_wifi);
     size_ip = ip->ip_hl << 2;
@@ -267,7 +270,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     }
 
     payload_size = header->len - header_size;
-    if (payload_size <= 0)
+    if (payload_size <= 1)  // 0 in orign file
         return;
     payload = (uint8_t *)(packet + header_size);
 
