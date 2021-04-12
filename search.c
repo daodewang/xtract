@@ -53,7 +53,7 @@ void compile_srch(srch_node_t **srch_tree, int id, char *ext, unsigned long maxl
     if (speclen == 0)
         return;
 
-    currlen = 0;
+    currlen = 0;    //static var, seem to record the len of this compile
     
     node_ptr = *srch_tree;
 

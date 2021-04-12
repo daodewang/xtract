@@ -270,7 +270,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     }
 
     payload_size = header->len - header_size;
-    if (payload_size <= 1)  // 0 in orign file
+    if (payload_size <= 0) 
         return;
     payload = (uint8_t *)(packet + header_size);
 
@@ -295,7 +295,7 @@ static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_c
     session->last_seqnum = tcp->th_seq;
     session->last_recvd = time(NULL);
 
-    results = search(srch_machine, &session->srchptr_list, payload, payload_size);
+    results = search(srch_machine, &session->srchptr_list, payload, payload_size);  // who is srch_machine? found in search.h 
 
     extract(&session->extract_list, results, session, payload, payload_size);
     free_results_list(&results);

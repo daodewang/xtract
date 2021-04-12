@@ -127,7 +127,7 @@ static void set_segment_marks(extract_list_t *elist, size_t size)
     extract_list_t *eptr;
 
     for (eptr = elist; eptr != NULL; eptr = eptr->next) {
-        eptr->segment.start = 0;
+        eptr->segment.start = 0;    // here segment fault
         if (eptr->fileid->maxlen - eptr->nwritten < size) {
             eptr->segment.end = eptr->fileid->maxlen - eptr->nwritten;
             eptr->finish++;

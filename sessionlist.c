@@ -61,7 +61,8 @@ slist_t *add_session(slist_t **slist, connection_t *conn)
     memcpy(&(*last_slist)->connection, conn, sizeof (*conn));
     (*last_slist)->prev = slist_ptr;
     (*last_slist)->next = NULL;
-    (*last_slist)->srchptr_list = NULL;
+    (*last_slist)->srchptr_list = NULL;     
+    (*last_slist)->extract_list = NULL;     //->extract_list NOT inited in origin file, key point
     return *last_slist;
 }
 

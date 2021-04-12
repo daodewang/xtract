@@ -1,0 +1,10 @@
+GIF87aHTTP/1.1 200 OK
+Server: nginx/1.16.1
+Date: Wed, 17 Mar 2021 01:07:29 GMT
+Content-Type: image/gif
+Content-Length: 6
+Connection: keep-alive
+Expires: Wed, 17 Mar 2021 01:07:28 GMT
+Cache-Control: no-cache
+
+GIF87a
